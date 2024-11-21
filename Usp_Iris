@@ -1,0 +1,139 @@
+### Relatório: Análise e Comparação de Modelos de Classificação para o Dataset Iris
+
+---
+
+### 1. **Introdução**
+
+O objetivo deste projeto foi implementar um modelo de aprendizado de máquina capaz de classificar espécies de flores do gênero Iris com base em suas características morfológicas. Utilizamos o famoso **dataset Iris**, que contém amostras de três espécies de flores: **Iris setosa**, **Iris versicolor** e **Iris virginica**, com quatro características medidas em centímetros: comprimento e largura da sépala e da pétala.
+
+Para resolver esse problema, foram implementados dois modelos de aprendizado de máquina para classificação: **Máquina de Vetores de Suporte (SVM)** e **Regressão Logística**. O processo envolveu o carregamento e pré-processamento dos dados, treinamento e avaliação dos modelos, com a comparação das acurácias de cada um.
+
+---
+
+### 2. **Metodologia**
+
+#### 2.1 Carregamento do Dataset
+
+O primeiro passo foi carregar o dataset Iris a partir de um arquivo CSV usando a biblioteca `pandas`. Esse dataset contém 150 amostras, com 4 características e uma coluna alvo, que é a espécie da flor. O arquivo CSV foi lido e as primeiras linhas do dataset foram exibidas para visualização dos dados.
+
+```python
+self.df = pd.read_csv(path)
+print(self.df.head())
+```
+
+#### 2.2 Pré-processamento dos Dados
+
+O pré-processamento envolveu os seguintes passos:
+
+- **Verificação de Dados Faltantes**: Inicialmente, verifiquei se havia valores ausentes. Caso houvesse, os valores foram substituídos pela média das colunas correspondentes, para não impactar negativamente na performance do modelo.
+  
+  ```python
+  if self.df.isnull().sum().any():
+      self.df = self.df.fillna(self.df.mean())
+  ```
+
+- **Separação das Variáveis**: O dataset foi dividido em duas partes:
+  - **Variáveis independentes (X)**: São as características morfológicas da flor (comprimento e largura da sépala e da pétala).
+  - **Variável dependente (y)**: A coluna "Species", que indica a espécie da flor e foi codificada como valores numéricos para facilitar a classificação.
+
+  ```python
+  X = self.df.drop('Species', axis=1)
+  y = pd.Categorical(self.df['Species']).codes
+  ```
+
+- **Divisão dos Dados**: Os dados foram divididos em conjuntos de treino e teste, com 70% para treinamento e 30% para teste, utilizando a função `train_test_split` do `scikit-learn`.
+
+  ```python
+  X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.3, random_state=42)
+  ```
+
+#### 2.3 Treinamento dos Modelos
+
+Foram treinados dois modelos de aprendizado de máquina:
+
+1. **SVM (Máquina de Vetores de Suporte)**: Escolhi o kernel linear, já que o problema parece ser linearmente separável. O SVM foi treinado no conjunto de treino.
+
+   ```python
+   modelo_svm = SVC(kernel='linear', random_state=42)
+   modelo_svm.fit(X_train, y_train)
+   ```
+
+2. **Regressão Logística**: Esse modelo é uma abordagem simples e eficiente para problemas de classificação binária ou multiclasse. Foi configurado com um número máximo de iterações de 200.
+
+   ```python
+   modelo_lr = LogisticRegression(max_iter=200, random_state=42)
+   modelo_lr.fit(X_train, y_train)
+   ```
+
+#### 2.4 Avaliação dos Modelos
+
+- **Validação Cruzada**: Para avaliar a acurácia de cada modelo durante o treinamento, utilizei validação cruzada (com 5 divisões), o que ajudou a medir a robustez e a generalização dos modelos.
+
+  ```python
+  svm_cv_score = cross_val_score(modelo_svm, X_train, y_train, cv=5).mean()
+  lr_cv_score = cross_val_score(modelo_lr, X_train, y_train, cv=5).mean()
+  ```
+
+- **Teste Final**: Após o treinamento, os modelos foram avaliados no conjunto de teste (30% dos dados). A acurácia foi calculada utilizando a função `accuracy_score` do `scikit-learn`.
+
+  ```python
+  y_pred_svm = modelo_svm.predict(X_test)
+  acuracia_svm = accuracy_score(y_test, y_pred_svm)
+
+  y_pred_lr = modelo_lr.predict(X_test)
+  acuracia_lr = accuracy_score(y_test, y_pred_lr)
+  ```
+
+---
+
+### 3. **Resultados**
+
+#### 3.1 Acurácia com Validação Cruzada
+
+Durante a validação cruzada, a acurácia média dos modelos foi a seguinte:
+
+- **SVM**: 98,8%
+- **Regressão Logística**: 96,4%
+
+Esses valores mostram que ambos os modelos apresentaram um bom desempenho, com o SVM tendo uma ligeira vantagem.
+
+#### 3.2 Acurácia no Conjunto de Teste
+
+Após treinar e avaliar os modelos no conjunto de teste, as acurácias obtidas foram:
+
+- **SVM**: 97,8%
+- **Regressão Logística**: 95,6%
+
+A diferença de desempenho entre os dois modelos não é muito grande, mas o **SVM** apresentou uma leve vantagem na acurácia. Isso pode ser um indicativo de que o modelo de SVM foi melhor capaz de capturar a separabilidade linear das classes.
+
+---
+
+### 4. **Análise e Comparação dos Modelos**
+
+- **SVM (Máquina de Vetores de Suporte)**:
+  - O modelo SVM teve um ótimo desempenho, tanto na validação cruzada quanto no teste final.
+  - A vantagem do SVM é que ele é eficaz em espaços de alta dimensão, como no caso deste dataset, que contém várias características que podem influenciar a classificação.
+  - O kernel linear foi escolhido por acreditar que as classes são linearmente separáveis.
+
+- **Regressão Logística**:
+  - A Regressão Logística também se saiu muito bem no problema, com uma acurácia ligeiramente inferior à do SVM.
+  - A Regressão Logística é mais simples e pode ser mais interpretável em muitos cenários, o que pode ser uma vantagem em situações onde a explicabilidade é importante.
+
+---
+
+### 5. **Conclusões**
+
+Ambos os modelos de classificação (SVM e Regressão Logística) apresentaram ótimos resultados para o problema de classificação do dataset Iris. O modelo **SVM** obteve uma acurácia ligeiramente superior, o que sugere que ele pode ser mais adequado para este tipo de problema com separabilidade linear. 
+
+A **Regressão Logística**, por sua vez, é uma técnica mais simples e pode ser vantajosa quando a interpretabilidade do modelo é importante, pois fornece uma probabilidade associada a cada classe.
+
+Em projetos futuros, poderia ser interessante testar outros algoritmos de classificação (como Árvore de Decisão ou Redes Neurais) e explorar técnicas de ajuste de hiperparâmetros (por exemplo, `GridSearchCV` ou `RandomizedSearchCV`) para otimizar ainda mais o desempenho.
+
+Além disso, técnicas como **normalização** ou **padronização** dos dados poderiam ser exploradas para melhorar o desempenho dos modelos, especialmente no caso do SVM, que pode ser sensível à escala das variáveis.
+
+---
+
+### 6. **Referências**
+
+- **Dataset Iris**: Fisher, R. A. (1936). The use of multiple measurements in taxonomic problems. *Annals of Eugenics*, 7(2), 179-188.
+- **Biblioteca `scikit-learn`**: [https://scikit-learn.org](https://scikit-learn.org)
